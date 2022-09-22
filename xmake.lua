@@ -4,6 +4,9 @@ add_rules("mode.debug", "mode.release")
 add_requires("glfw")
 add_requires("spdlog")
 add_requires("soloud")
+add_requires("sokol")
+add_requires("glm")
+add_requires("stb")
 
 target("ingengine")
     set_kind("static")
@@ -12,6 +15,9 @@ target("ingengine")
     add_packages("glfw", {public = true})
     add_packages("spdlog", {public = true})
     add_packages("soloud", {public = true})
+    add_packages("sokol", {public = true})
+    add_packages("glm", {public = true})
+    add_packages("stb", {public = true})
     
     -- Declare our engine's header path.
     -- This allows targets that depend on the engine to #include them.

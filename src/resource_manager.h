@@ -7,7 +7,7 @@ namespace resource_manager {
 
 class ResourceManager {
     public:
-        std::filesystem::path ResolvePath( const string& name );
+        std::filesystem::path ResourceManager::ResolvePath( const string& folder, const string& name );
 
 };
 

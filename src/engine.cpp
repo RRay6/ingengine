@@ -14,7 +14,7 @@ Engine::Engine() {
 
 void Engine::Startup() {
 
-    std::cerr << resources.ResolvePath("click.wav") << std::endl;
+    // std::cerr << resources.ResolvePath("sounds", "click.wav") << std::endl;
 
     graphics.Startup();
     input.Startup(graphics.GetWindow());

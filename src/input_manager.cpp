@@ -37,7 +37,7 @@ void InputManager::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 {
     if(key == 263 && action == GLFW_PRESS) {
         std::cerr << "Key pressed." << std::endl;
-        std::string path_string{resources.ResolvePath("click.wav").u8string()};
+        std::string path_string{resources.ResolvePath("sounds", "click.wav").u8string()};
         sounds.LoadSound("click.wav", path_string);
     }
 }

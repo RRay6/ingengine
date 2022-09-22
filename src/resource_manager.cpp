@@ -6,7 +6,7 @@ namespace fs = std::filesystem;
 
 namespace resource_manager {
 
-    std::filesystem::path ResourceManager::ResolvePath( const string& name ) {
+    std::filesystem::path ResourceManager::ResolvePath( const string& folder, const string& name ) {
         fs::path pl = fs::current_path();
         typedef std::filesystem::path path;
 
@@ -21,7 +21,7 @@ namespace resource_manager {
 
         const path root{ r };
 
-        path p = root / "assets" / "sounds" / name;
+        path p = root / "assets" / folder / name;
 
         //std::filesystem::path(path) / p.relative_path()
 
