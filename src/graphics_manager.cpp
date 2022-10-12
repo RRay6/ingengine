@@ -17,20 +17,17 @@
 #include "glm/gtx/transform.hpp"
 
 #include "uniforms.h"
+#include "types.h"
+
+#include "Components/sprite.h"
+
+#include <vector>
 
 using namespace std;
 
 
-namespace graphics_manager {
-
-    GLFWwindow* window;
-    resource_manager::ResourceManager resources;
-    sg_image image;
-    int width, height, channels;
-    sg_pipeline pipeline;
-    sg_pass_action pass_action{};
-    sg_bindings bindings{};
-    sg_shader_desc shader_desc{};
+namespace graphics_manager 
+{
 
 void GraphicsManager::Startup()
 {
@@ -64,82 +61,79 @@ void GraphicsManager::Startup()
     glfwSwapInterval(1);
     //glfwPollEvents();
 
+    glfwSetWindowSizeCallback(window, window_size_callback);
+
     glfwSetWindowCloseCallback(window, WindowClosed);
 
     
-        sg_desc desc{};
-        sg_setup(&desc);
+    sg_desc desc{};
+    sg_setup(&desc);
     
 
     
-        // A vertex buffer containing a textured square.
-        const float vertices[] = {
-            // positions      // texcoords
-            -1.0f,  -1.0f,    0.0f,  0.0f,
-            1.0f,  -1.0f,    1.0f,  0.0f,
-            -1.0f,   1.0f,    0.0f,  1.0f,
-            1.0f,   1.0f,    1.0f,  1.0f,
-        };
+    // A vertex buffer containing a textured square.
+    const float vertices[] = {
+        // positions      // texcoords
+        -1.0f,  -1.0f,    0.0f,  0.0f,
+        1.0f,  -1.0f,    1.0f,  0.0f,
+        -1.0f,   1.0f,    0.0f,  1.0f,
+        1.0f,   1.0f,    1.0f,  1.0f,
+    };
 
-        sg_buffer_desc buffer_desc{};
-        buffer_desc.data = SG_RANGE(vertices);
-        sg_buffer vertex_buffer = sg_make_buffer(buffer_desc);
+    sg_buffer_desc buffer_desc{};
+    buffer_desc.data = SG_RANGE(vertices);
+    sg_buffer vertex_buffer = sg_make_buffer(buffer_desc);
         
-        sg_pipeline_desc pipeline_desc{};
-        pipeline_desc.primitive_type = SG_PRIMITIVETYPE_TRIANGLE_STRIP;
-        pipeline_desc.colors[0].blend.enabled = true;
-        pipeline_desc.colors[0].blend.src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA;
-        pipeline_desc.colors[0].blend.dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-        pipeline_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
-        pipeline_desc.depth.write_enabled = true;
-        pipeline_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2;
-        pipeline_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT2;
+    sg_pipeline_desc pipeline_desc{};
+    pipeline_desc.primitive_type = SG_PRIMITIVETYPE_TRIANGLE_STRIP;
+    pipeline_desc.colors[0].blend.enabled = true;
+    pipeline_desc.colors[0].blend.src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA;
+    pipeline_desc.colors[0].blend.dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+    pipeline_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
+    pipeline_desc.depth.write_enabled = true;
+    pipeline_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2;
+    pipeline_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT2;
 
-        shader_desc.vs.source = R"(
+    shader_desc.vs.source = R"(
+    #version 330
+    uniform mat4 projection;
+    uniform mat4 transform;
+    layout(location=0) in vec2 position;
+    layout(location=1) in vec2 texcoords0;
+    out vec2 texcoords;
+    void main() {
+        gl_Position = projection*transform*vec4( position, 0.0, 1.0 );
+        texcoords = texcoords0;
+    })";
+    shader_desc.vs.uniform_blocks[0].size = sizeof(Uniforms);
+    // The order of `.uniforms[0]` and `.uniforms[1]` must match the order in `Uniforms`
+    shader_desc.vs.uniform_blocks[0].uniforms[0].name = "projection";
+    shader_desc.vs.uniform_blocks[0].uniforms[0].type = SG_UNIFORMTYPE_MAT4;
+    shader_desc.vs.uniform_blocks[0].uniforms[1].name = "transform";
+    shader_desc.vs.uniform_blocks[0].uniforms[1].type = SG_UNIFORMTYPE_MAT4;
+    shader_desc.fs.source = R"(
         #version 330
-        uniform mat4 projection;
-        uniform mat4 transform;
-        layout(location=0) in vec2 position;
-        layout(location=1) in vec2 texcoords0;
-        out vec2 texcoords;
+        uniform sampler2D tex;
+        in vec2 texcoords;
+        out vec4 frag_color;
         void main() {
-            gl_Position = projection*transform*vec4( position, 0.0, 1.0 );
-            texcoords = texcoords0;
-        })";
-        shader_desc.vs.uniform_blocks[0].size = sizeof(Uniforms);
-        // The order of `.uniforms[0]` and `.uniforms[1]` must match the order in `Uniforms`
-        shader_desc.vs.uniform_blocks[0].uniforms[0].name = "projection";
-        shader_desc.vs.uniform_blocks[0].uniforms[0].type = SG_UNIFORMTYPE_MAT4;
-        shader_desc.vs.uniform_blocks[0].uniforms[1].name = "transform";
-        shader_desc.vs.uniform_blocks[0].uniforms[1].type = SG_UNIFORMTYPE_MAT4;
-        shader_desc.fs.source = R"(
-            #version 330
-            uniform sampler2D tex;
-            in vec2 texcoords;
-            out vec4 frag_color;
-            void main() {
-                frag_color = texture( tex, texcoords );
-                // If we're not drawing back to front, discard very transparent pixels so we
-                // don't write to the depth buffer and prevent farther sprites from drawing.
-                if( frag_color.a < 0.1 ) discard;
-            }
-        )";
-        shader_desc.fs.images[0].name = "tex"; // The name should match the shader source code.
-        shader_desc.fs.images[0].image_type = SG_IMAGETYPE_2D;
-        pipeline_desc.shader = sg_make_shader( shader_desc );
-        pipeline = sg_make_pipeline( pipeline_desc );
+            frag_color = texture( tex, texcoords );
+            // If we're not drawing back to front, discard very transparent pixels so we
+            // don't write to the depth buffer and prevent farther sprites from drawing.
+            if( frag_color.a < 0.1 ) discard;
+        }
+    )";
+    shader_desc.fs.images[0].name = "tex"; // The name should match the shader source code.
+    shader_desc.fs.images[0].image_type = SG_IMAGETYPE_2D;
+    pipeline_desc.shader = sg_make_shader( shader_desc );
+    pipeline = sg_make_pipeline( pipeline_desc );
 
-        pass_action.colors[0].action = SG_ACTION_CLEAR;
-        pass_action.colors[0].value = {  }; // SG_DEFAULT_CLEAR_RED, SG_DEFAULT_CLEAR_GREEN, SG_DEFAULT_CLEAR_BLUE, SG_DEFAULT_CLEAR_ALPHA
-        //Magum::Math::Color4::from(pass_action.colors[0].value) = 0x1f1f1f_rgbf;
+    pass_action.colors[0].action = SG_ACTION_CLEAR;
+    pass_action.colors[0].value = {  }; // SG_DEFAULT_CLEAR_RED, SG_DEFAULT_CLEAR_GREEN, SG_DEFAULT_CLEAR_BLUE, SG_DEFAULT_CLEAR_ALPHA
+    //Magum::Math::Color4::from(pass_action.colors[0].value) = 0x1f1f1f_rgbf;
 
-        bindings.vertex_buffers[0] = vertex_buffer;
-        //bindings.fs_images[0] = image;
-
-        Draw();
-        
-    
-    //glfwTerminate();
+    bindings.vertex_buffers[0] = vertex_buffer;
+           
 }
 
 void GraphicsManager::Update() {
@@ -177,52 +171,57 @@ bool GraphicsManager::LoadImage( const string& name, const string& path ) //cons
 {
     //std::string path_string{resources.ResolvePath("sounds", "click.wav").u8string()};
 
+    int width, height, channels;
+
     unsigned char* data = stbi_load( path.c_str(), &width, &height, &channels, 4 );
 
-    if (data == 0) {
-        cout << "Error loading image file" << endl;
-    }
-    else
+    if (data == 0) 
     {
-        cout << "It worked :D" << endl;
+        cout << "Error loading image file" << endl;
+        return false;
     }
 
-    //{
-        sg_image_desc image_desc{};
-        image_desc.width = width;
-        image_desc.height = height;
-        image_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
-        image_desc.min_filter = SG_FILTER_LINEAR;
-        image_desc.mag_filter = SG_FILTER_LINEAR;
-        image_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
-        image_desc.wrap_v = SG_WRAP_CLAMP_TO_EDGE;
-        image_desc.data.subimage[0][0].ptr = data;
-        image_desc.data.subimage[0][0].size = (size_t)(width * height * 4);
+    sg_image image;
 
-        image = sg_make_image( image_desc );
-        stbi_image_free( data );
-    //}
+    sg_image_desc image_desc{};
+    image_desc.width = width;
+    image_desc.height = height;
+    image_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+    image_desc.min_filter = SG_FILTER_LINEAR;
+    image_desc.mag_filter = SG_FILTER_LINEAR;
+    image_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
+    image_desc.wrap_v = SG_WRAP_CLAMP_TO_EDGE;
+    image_desc.data.subimage[0][0].ptr = data;
+    image_desc.data.subimage[0][0].size = (size_t)(width * height * 4);
 
-    return false;
+    Texture tex;
+        
+    tex.image = sg_make_image( image_desc );
+    tex.height = height;
+    tex.width = width;
+
+    umap[name] = tex;
+
+    stbi_image_free( data );
+
+    return true;
 }
 
-void GraphicsManager::Draw() //const std::vector< Sprite >& sprites
+void GraphicsManager::Draw(const std::vector< Sprite >& sprites) //const std::vector< Sprite >& sprites
 {
     int windowWidth, windowHeight;
     Uniforms uniforms;
 
-    string path_string{resources.ResolvePath("std_image", "lulu_the_cat.jpg").u8string()};
-    cout << path_string << endl;
-    LoadImage("lulu_the_cat.jpg", path_string);
-
-	glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
+    glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
     sg_begin_default_pass( pass_action, windowWidth, windowHeight );
     sg_apply_pipeline( pipeline );
 
     // Start with an identity matrix.
     uniforms.projection = glm::mat4{1};
+    
     // Scale x and y by 1/100.
     uniforms.projection[0][0] = uniforms.projection[1][1] = 1./100.;
+    
     // Scale the long edge by an additional 1/(long/short) = short/long.
     if( windowWidth < windowHeight ) 
     {
@@ -235,25 +234,62 @@ void GraphicsManager::Draw() //const std::vector< Sprite >& sprites
         uniforms.projection[0][0] /= windowHeight;
     }
 
-    uniforms.transform = translate( glm::mat4{1}, glm::vec3( 2, 2, 1 ) ) * scale( glm::mat4{1}, glm::vec3( -100, -100, -100 ) );
+    if (loaded == 0)
+    {
+        string path_string;
 
-    if( width < height ) 
-    {
-        uniforms.transform = uniforms.transform * scale( glm::mat4{1}, glm::vec3((float)width/height, 1.0, 1.0 ) );
-    } 
-    else 
-    {
-        uniforms.transform = uniforms.transform * scale( glm::mat4{1}, glm::vec3( 1.0, (float)height/width, 1.0 ) );
+        for (const Sprite& sprite : sprites) 
+        {
+            if (umap.find(sprite.image) == umap.end())
+            {
+                path_string = resources.ResolvePath("std_image", sprite.image).u8string();
+                cout << path_string << endl;
+                LoadImage(sprite.image, path_string);
+            }
+        }
+
+        cout<<"LOADED ALL TEXTURES"<<endl;
+        loaded++;
     }
 
-    sg_apply_uniforms( SG_SHADERSTAGE_VS, 0, SG_RANGE(uniforms) );
-    bindings.fs_images[0] = image;
-    sg_apply_bindings(bindings);
-    sg_draw(0, 4, 1);
+    for (const Sprite& sprite : sprites) 
+    {
+        
+        Texture tex = umap.at(sprite.image);
+
+        //uniforms.transform = translate( glm::mat4{1}, glm::vec3( 0, 0, 0 ) ) * scale( glm::mat4{1}, glm::vec3( -100, -100, -100 ) );
+
+        //                                                        x, y, z
+        uniforms.transform = translate( glm::mat4{1}, glm::vec3( sprite.x, sprite.y, sprite.z ) ) * scale( glm::mat4{1}, glm::vec3( - sprite.scale, - sprite.scale, - sprite.scale ) );
+
+        if( tex.width < tex.height ) 
+        {
+            uniforms.transform = uniforms.transform * scale( glm::mat4{1}, glm::vec3((float)tex.width/tex.height, 1.0, 1.0 ) );
+        } 
+        else 
+        {
+            uniforms.transform = uniforms.transform * scale( glm::mat4{1}, glm::vec3( 1.0, (float)tex.height/tex.width, 1.0 ) );
+        }
+
+        sg_apply_uniforms( SG_SHADERSTAGE_VS, 0, SG_RANGE(uniforms) );
+        sg_apply_uniforms( SG_SHADERSTAGE_FS, 0, SG_RANGE(uniforms) );
+        bindings.fs_images[0] = tex.image;
+        sg_apply_bindings(bindings); 
+        sg_draw(0, 4, 1);
+        
+    }
+
     sg_end_pass();
     sg_commit();
     glfwSwapBuffers(window);
 
+}
+
+void GraphicsManager::window_size_callback(GLFWwindow* window, int width, int height)
+{
+    int w, h;
+    //glfwGetWindowSize(window, &w, &h);
+    //glfwSetWindowSize(window, w, h);
 }
 
 }

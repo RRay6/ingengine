@@ -7,6 +7,7 @@ add_requires("soloud")
 add_requires("sokol")
 add_requires("glm")
 add_requires("stb")
+add_requires("lua", "sol2")
 
 target("ingengine")
     set_kind("static")
@@ -18,6 +19,8 @@ target("ingengine")
     add_packages("sokol", {public = true})
     add_packages("glm", {public = true})
     add_packages("stb", {public = true})
+    add_packages("lua", {public = true})
+    add_packages("sol2", {public = true})
     
     -- Declare our engine's header path.
     -- This allows targets that depend on the engine to #include them.
