@@ -3,12 +3,18 @@
 #include <chrono>
 #include <iostream>
 
+#include "resource_manager.h"
 #include "Components/sprite.h"
+#include "Components/foo.h"
+
+#include "ecs.h"
 
 
 namespace ingengine {
 
     Engine* ingengine::Engine::sInstance = nullptr;
+    //ecs::Manager manager;
+    //auto& newPlayer(manager.addEntity());
 
 Engine::Engine() {
     assert(sInstance == nullptr);
@@ -18,6 +24,13 @@ Engine::Engine() {
 void Engine::Startup() {
 
     // std::cerr << resources.ResolvePath("sounds", "click.wav") << std::endl;
+
+    ecs::EntityID a(1);
+
+    //a.Get<Sprite>() = 7;
+    cout << "a.Get<Sprite>().x: " << a.Get<Sprite>().x << '\n';
+
+    // newPlayer.addComponent<Sprite>();
 
     graphics.Startup();
     input.Startup(graphics.GetWindow());

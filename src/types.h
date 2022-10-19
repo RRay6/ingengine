@@ -13,13 +13,7 @@ namespace Types
     struct Velocity { real x, y; }; // or: struct Velocity : public vec2 {};
     struct Gravity { real meters_per_second; };
     // struct Sprite { string image; real size; };
-    struct Sprite {
-        std::string image;
-        float x;
-        float y;
-        float scale;
-        float z;
-    };
+
     struct Health { real percent; };
     struct Script { string name; };
 }

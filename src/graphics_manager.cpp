@@ -32,7 +32,7 @@ namespace graphics_manager
 void GraphicsManager::Startup()
 {
 
-    int window_width = 500;
+    int window_width = 800;
     int window_height = 500;
     // std::string window_name = "ingengine";
     bool window_fullscreen = false;

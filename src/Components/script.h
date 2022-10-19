@@ -3,4 +3,5 @@
 #include <string>
 using namespace std;
 
-struct Script { string name; };
+struct Script
+{ string name; };
