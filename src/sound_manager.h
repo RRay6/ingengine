@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "soloud.h"
 #include "soloud_wav.h"
+#include "resource_manager.h"
 using namespace std;
 
 namespace sound_manager {

@@ -6,18 +6,23 @@
 #include "resource_manager.h"
 #include "script_manager.h"
 
+#include "game.h"
+#include "ecs.h"
+
 namespace ingengine {
 
 class Engine {
     public:
-        static Engine* Instance() { return sInstance; }
         typedef std::function<void()> UpdateCallback;
-        Engine();
+        Engine(game::Game* g);
         void Startup();
         void Shutdown();
         void RunGameLoop(const std::string& name, std::function<void()> callback = nullptr);
+        int GetKey();
     private:
-        static Engine* sInstance;
+        ecs::ECS entity_manager;
+
+        game::Game* game;
 
         graphics_manager::GraphicsManager graphics;
         input_manager::InputManager input;

@@ -33,9 +33,9 @@ struct SparseSetHolder {
 
 // Subclasses are templated on the component type they hold.
 template< typename T > struct SparseSet : SparseSetHolder {
-    std::unordered_map< EntityID, T > data;
-    bool Has( EntityID e ) const override { return data.count( e ) > 0; };
-    void Drop( EntityID e ) override { data.erase( e ); };
+    std::unordered_map< int64_t , T > data;
+    bool Has( EntityID e ) const override { return data.count( e.id ) > 0; };
+    void Drop( EntityID e ) override { data.erase( e.id ); };
 };
 // template <typename T>
 //std::unordered_map< std::type_index, SparseSetHolder::SparseSetHolder() > m_components;
@@ -46,11 +46,15 @@ class ECS {
     typedef int ComponentIndex;
 
     public:
+
+        int64_t i_var = 0;
+        
         EntityID Create()
         {
-            EntityID id;
+            EntityID id = EntityID(i_var++);
             return id;
         };
+        
         void Destroy( EntityID e )
         {
             for( const auto& comps : m_components ) { comps->Drop( e ); }
@@ -58,7 +62,18 @@ class ECS {
 
         template< typename T >
         T& Get(EntityID entity) {
-            return GetAppropriateSparseSet<T>()[ entity ];
+
+            // cout << "ID A " << entity << "\n";
+            // cout << "ID B " << entity.id << "\n";
+            //static T e =  GetAppropriateSparseSet<T>()[ entity ];
+
+            T e =  GetAppropriateSparseSet<T>()[ entity ];
+
+            cout << "AFTER " << e.x << "\n";
+
+            //return GetAppropriateSparseSet<T>()[ entity ];
+
+            return e;
         };
 
         // template <typename T>
@@ -68,24 +83,46 @@ class ECS {
         // void ForEach( callback );
 
         
-        template<typename T> ComponentIndex GetComponentIndex() {
+        template<typename T> 
+        ComponentIndex GetComponentIndex() {
             static ComponentIndex index = GetNextIndex(); // Only calls GetNextIndex() the first time this function is called.
+            // cout << "INDEX " << index << "\n";
             return index;
         }
+        
         ComponentIndex GetNextIndex() {
             static ComponentIndex index = -1; // Returns the sequence 0, 1, 2, ... every time this is called.
             index += 1;
             return index;
         }
 
-        template< typename T > std::unordered_map< EntityID, T > GetAppropriateSparseSet() {
+        template< typename T > 
+        std::unordered_map< int64_t , T > GetAppropriateSparseSet() {
+        
+        // cout << "INSIDE\n";
+
         // Get the index for T’s SparseSet
         const ComponentIndex index = GetComponentIndex<T>();
         // If we haven’t seen it yet, it must be one past the end. Create the sparse set.
-        if( index >= m_components.size() ) { m_components.push_back( std::make_unique< SparseSet<T> >() ); }
+        if( index >= m_components.size() ) 
+        { 
+            m_components.push_back( std::make_unique< SparseSet<T> >() ); 
+        }
+        
         assert( index < m_components.size() );
         // It’s safe to cast the SparseSetHolder to its subclass and return the std::unordered_map< EntityID, T > inside.
-        return static_cast< SparseSet<T>& >( *m_components[ index ] ).data;    
+
+        // cout << "INDEX2 " << index << "\n";
+
+        //std::unordered_map< int64_t , T > =
+
+        std::unordered_map< int64_t , T > e = static_cast< SparseSet<T>& >( *m_components[ index ] ).data;
+
+        T l =  e[ 0 ];
+
+        cout << "INSIDE " << l.x << "\n";
+
+        return e;    
     }   
 
 };

@@ -37,8 +37,10 @@ bool SoundManager::LoadSound( const string& name, const string& path ) {
     wave.load(path.c_str());
     int handle = soloud.play(wave);
 
-    std::string s = std::to_string(handle);
-    std::cerr << s << std::endl;
+    soloud.setPause(handle, 0);  
+
+    // std::string s = std::to_string(handle);
+    // std::cerr << s << std::endl;
 
     
     while (soloud.getActiveVoiceCount() > 0)
@@ -49,7 +51,7 @@ bool SoundManager::LoadSound( const string& name, const string& path ) {
     soloud.deinit();
 
 
-    return 1;
+    return true;
 }
 
 }

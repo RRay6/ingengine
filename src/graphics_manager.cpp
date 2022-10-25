@@ -33,7 +33,7 @@ void GraphicsManager::Startup()
 {
 
     int window_width = 800;
-    int window_height = 500;
+    int window_height = 800;
     // std::string window_name = "ingengine";
     bool window_fullscreen = false;
 
@@ -243,7 +243,7 @@ void GraphicsManager::Draw(const std::vector< Sprite >& sprites) //const std::ve
             if (umap.find(sprite.image) == umap.end())
             {
                 path_string = resources.ResolvePath("std_image", sprite.image).u8string();
-                cout << path_string << endl;
+                // cout << path_string << endl;
                 LoadImage(sprite.image, path_string);
             }
         }
@@ -260,7 +260,7 @@ void GraphicsManager::Draw(const std::vector< Sprite >& sprites) //const std::ve
         //uniforms.transform = translate( glm::mat4{1}, glm::vec3( 0, 0, 0 ) ) * scale( glm::mat4{1}, glm::vec3( -100, -100, -100 ) );
 
         //                                                        x, y, z
-        uniforms.transform = translate( glm::mat4{1}, glm::vec3( sprite.x, sprite.y, sprite.z ) ) * scale( glm::mat4{1}, glm::vec3( - sprite.scale, - sprite.scale, - sprite.scale ) );
+        uniforms.transform = translate( glm::mat4{1}, glm::vec3( sprite.x, sprite.y, sprite.z ) ) * scale( glm::mat4{1}, glm::vec3( sprite.scale, - sprite.scale, - sprite.scale ) );
 
         if( tex.width < tex.height ) 
         {

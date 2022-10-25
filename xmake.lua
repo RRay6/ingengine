@@ -25,9 +25,11 @@ target("ingengine")
     -- Declare our engine's header path.
     -- This allows targets that depend on the engine to #include them.
     add_includedirs("src", {public = true})
+    add_includedirs("tests", {public = true})
     
     -- Add all .cpp files in the `src` directory.
     add_files("src/*.cpp")
+    add_files("tests/*.cpp")
 
 target("helloworld")
     set_kind("binary")

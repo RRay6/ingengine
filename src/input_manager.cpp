@@ -1,12 +1,10 @@
 #include "input_manager.h"
 #include <iostream>
-#include "sound_manager.h"
-#include "resource_manager.h"
 
 namespace input_manager {
 
-    sound_manager::SoundManager sounds;
-    resource_manager::ResourceManager resources;
+    int current_key = -1;
+    bool pressed = false;
 
 void InputManager::Startup(GLFWwindow* window) {
 
@@ -24,22 +22,46 @@ void InputManager::Update(GLFWwindow* window) {
     //KeyIsPressed(window);
 }
 
-bool InputManager::KeyIsPressed(GLFWwindow* window) {
-    if(glfwGetKey(window, 263)) {
-        std::cerr << "Key pressed sound." << std::endl;
-        return true;
+int InputManager::KeyPressed(GLFWwindow* window) {
+    if(glfwGetKey(window, 263)) 
+    {
+        // std::cerr << "Key pressed sound." << std::endl;
+        return 0;
     }
 
-    return false;
+    return 0;
+}
+
+int InputManager::GetKey()
+{
+    if (pressed)
+    {
+        return current_key;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+void InputManager::SetPressedFalse()
+{
+    pressed = false;
 }
 
 void InputManager::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if(key == 263 && action == GLFW_PRESS) {
-        std::cerr << "Key pressed." << std::endl;
-        std::string path_string{resources.ResolvePath("sounds", "click.wav").u8string()};
-        sounds.LoadSound("click.wav", path_string);
+    if(action == GLFW_PRESS) {
+        
+        // std::cerr << "Key pressed." << std::endl;
+        // std::string path_string{resources.ResolvePath("sounds", "click.wav").u8string()};
+        // sounds.LoadSound("click.wav", path_string);
+
+        current_key = key;
+        pressed = true;
     }
+
+    //std::cerr << "Key pressed." << std::endl;
 }
 
 }
