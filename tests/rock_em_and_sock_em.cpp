@@ -21,7 +21,7 @@ void rock_em_and_sock_em::RockEmAndSockEm::Init()
 {
 
     // ecs::EntityID a(entity_manager.Create());
-    //ecs::EntityID b(entity_manager.Create());
+    // ecs::EntityID b(entity_manager.Create());
 
     // ecs::EntityID a = entity_manager.Create();
     // ecs::EntityID b = entity_manager.Create();
@@ -37,13 +37,13 @@ void rock_em_and_sock_em::RockEmAndSockEm::Init()
     //Sprite x = entity_manager.Get<Sprite>(a.id);
     // entity_manager.Get<Sprite>(a).x = 17;
     // entity_manager.Get<Foo>(a.id) = 17;
-    // entity_manager.Get<Sprite>(b) = 23;
+    // entity_manager.Get<Sprite>(b).x = 23;
     //Sprite y = entity_manager.Get<Sprite>(b.id);
     //entity_manager.Get<Sprite>(b.id).x = 38;
     //b.Get<Sprite>().x = 23;
 
-    //cout << "a.Get<Sprite>(): " << a.id << " " << a.Get<Sprite>().x << '\n';
-    //cout << "b.Get<Sprite>(): " << b.id << " " << b.Get<Sprite>().x << '\n';
+    // cout << "a.Get<Sprite>(): " << a.id << " " << a.Get<Sprite>().x << '\n';
+    // cout << "b.Get<Sprite>(): " << b.id << " " << b.Get<Sprite>().x << '\n';
 
     // cout << "a.Get<Sprite>(): " << a.id << " " << entity_manager.Get<Sprite>(a).x << '\n';
     // cout << "b.Get<Sprite>(): " << b.id << " " << entity_manager.Get<Sprite>(b).x << '\n';
@@ -51,15 +51,51 @@ void rock_em_and_sock_em::RockEmAndSockEm::Init()
     //cout << "x : " << x << '\n';
     //cout << "y : " << y << '\n';
 
-    Sprite sprite;
+    // ecs::EntityID a = entity_manager.Create();
+    // ecs::EntityID b = entity_manager.Create();
+    // cout << "a: " << a << '\n';
+    // cout << "b: " << b << '\n';
+
+    // cout << "- - - - - - - - \n";
+    
+    // auto& Foo_a = a.Get<Foo>();
+    // auto& Foo_b = b.Get<Foo>();
+    
+    // cout << "a.Foo: " << Foo_a.x << '\n';
+    // cout << "b.Foo: " << Foo_b.x << '\n';
+
+    // cout << "- - - - - - - - \n";
+    
+    // Foo_a.x = 0;
+    
+    // cout << "a.Foo: " << Foo_a.x << '\n';
+    // cout << "b.Foo: " << Foo_b.x << '\n';
+
+    // cout << "- - - - - - - - \n";
+    
+    // Foo_b.x = 1;
+    
+    // cout << "a.Foo: " << Foo_a.x << '\n';
+    // cout << "b.Foo: " << Foo_b.x << '\n';
+
+    // cout << "- - - - - - - - \n";
+
+    ecs::EntityID a = entity_manager.Create();
+
+    auto& sprite = a.Get<Sprite>();
     sprite.image = "black.png";
     sprite.scale = 100;
     sprite.x = 0;
     sprite.y = 0;
     sprite.z = 0;
 
+    // entity_manager.Get<Sprite>(0)
+    // cout << "a.image: " << a.Get<Sprite>().image << '\n';
+    //cout << "a.image: " << entity_manager.Get<Sprite>(0).image << '\n';
+
     // vec.insert(sprite, 1);
     vec.push_back(sprite);
+    entities.push_back(a);
 
     // Sprite sprite2;
     // sprite2.image = "purple1.png";
@@ -111,7 +147,9 @@ void rock_em_and_sock_em::RockEmAndSockEm::Init()
                 name = "purple"+to_string(num)+".png";
             }
 
-            Sprite sprite2;
+            ecs::EntityID b = entity_manager.Create();
+
+            auto& sprite2 = b.Get<Sprite>();
             sprite2.image = "purple"+to_string(num)+".png";
             //sprite2.image = sprite2.image+".png";
 
@@ -123,7 +161,21 @@ void rock_em_and_sock_em::RockEmAndSockEm::Init()
             sprite2.z = 0;
 
             vec.push_back(sprite2);
+            entities.push_back(b);
         }
+    }
+
+    // entity_manager.ForEach<Sprite>( [&]( ecs::EntityID entity ) {
+    //     cout << "inside loop \n";
+    //     Sprite& sprite = entities.Get<Sprite>(entity);
+    //     cout << "a.image: " << sprite.image << '\n';
+    // } );
+
+    for (auto entity : entities)
+    {
+        cout << "inside loop \n";
+        auto& s = entity.Get<Sprite>();
+        cout << "image: " << s.image << '\n';
     }
 
     count = vec.size() - 1;

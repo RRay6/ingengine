@@ -10,6 +10,7 @@ class Game {
         // ecs::ECS
         ecs::ECS entity_manager;
         std::vector <Sprite> vec;
+        std::vector <ecs::EntityID> entities;
         void PublicInit();
         void PublicInput(int key);
         void PublicUpdate();

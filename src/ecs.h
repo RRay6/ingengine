@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <iostream>
 #include <cstdint> // For int64_t
 #include <typeindex>
@@ -65,11 +66,11 @@ class ECS {
 
             // cout << "ID A " << entity << "\n";
             // cout << "ID B " << entity.id << "\n";
-            //static T e =  GetAppropriateSparseSet<T>()[ entity ];
+            // static T e =  GetAppropriateSparseSet<T>()[ entity ];
 
-            T e =  GetAppropriateSparseSet<T>()[ entity ];
+            T& e =  GetAppropriateSparseSet<T>()[ entity ];
 
-            cout << "AFTER " << e.x << "\n";
+            //cout << "AFTER " << &GetAppropriateSparseSet<T>()[ entity ] << "\n";
 
             //return GetAppropriateSparseSet<T>()[ entity ];
 
@@ -97,12 +98,11 @@ class ECS {
         }
 
         template< typename T > 
-        std::unordered_map< int64_t , T > GetAppropriateSparseSet() {
-        
-        // cout << "INSIDE\n";
+        std::unordered_map< int64_t , T >& GetAppropriateSparseSet() {
 
         // Get the index for T’s SparseSet
         const ComponentIndex index = GetComponentIndex<T>();
+        
         // If we haven’t seen it yet, it must be one past the end. Create the sparse set.
         if( index >= m_components.size() ) 
         { 
@@ -110,20 +110,44 @@ class ECS {
         }
         
         assert( index < m_components.size() );
+
         // It’s safe to cast the SparseSetHolder to its subclass and return the std::unordered_map< EntityID, T > inside.
+        std::unordered_map< int64_t , T >& e = static_cast< SparseSet<T>& >( *m_components[ index ] ).data;
 
-        // cout << "INDEX2 " << index << "\n";
-
-        //std::unordered_map< int64_t , T > =
-
-        std::unordered_map< int64_t , T > e = static_cast< SparseSet<T>& >( *m_components[ index ] ).data;
-
-        T l =  e[ 0 ];
-
-        cout << "INSIDE " << l.x << "\n";
-
-        return e;    
+        return e;   
     }   
+
+    typedef std::function<void( EntityID )> ForEachCallback;
+    template<typename EntitiesThatHaveThisComponent, typename... AndAlsoTheseComponents>
+    void ForEach( const ForEachCallback& callback ) {
+        // Iterate over elements of the first container.
+        auto& container = GetAppropriateSparseSet<EntitiesThatHaveThisComponent>();
+
+        cout << "size " << m_components.size() << "\n";
+
+        for( const auto& [entity, value] : container ) {
+            // We know it has the first component.
+            // Skip the entity if it doesn't have the remaining components.
+            // This `if constexpr` is evaluated at compile time. It is needed when AndAlsoTheseComponents is empty.
+            // https://stackoverflow.com/questions/48405482/variadic-template-no-matching-function-for-call/48405556#48405556
+
+            if constexpr (sizeof...(AndAlsoTheseComponents) > 0) {
+                if( !HasAll<AndAlsoTheseComponents...>( entity ) ) {
+                    continue;
+                }
+            }
+            callback( entity );
+        }
+    }
+
+    // Returns true if the entity has all types.
+    template <typename T, typename... Rest>
+    bool HasAll( EntityID entity ) {
+        bool result = true;
+        // https://stackoverflow.com/questions/48405482/variadic-template-no-matching-function-for-call/48405556#48405556
+        if constexpr (sizeof...(Rest) > 0) { result = HasAll<Rest...>(entity); }
+        return result && GetAppropriateSparseSet<T>().count( entity ) > 0;
+    }
 
 };
 
@@ -134,135 +158,3 @@ class ECS {
     template <typename T> T& EntityID::Get() { return ecs.Get<T>(*this); }
 
 }
-
-// #pragma once
-
-// #include <iostream>
-// #include <vector>
-// #include <memory>
-// #include <algorithm>
-// #include <bitset>
-// #include <array>
-
-
-// namespace ecs {
-
-// class Component;
-// class Entity;
-
-// using ComponentID = std::size_t;
-
-// inline ComponentID getComponentID()
-// {
-//     static ComponentID lastID = 0;
-//     return lastID++;
-// }
-
-// template <typename T> inline ComponentID getComponentID() noexcept
-// {
-//     static ComponentID typeID = getComponentID();
-//     return typeID;
-// }
-
-// constexpr std::size_t maxComponents = 32;
-
-// using ComponentBitSet = std::bitset<maxComponents>;
-// using ComponentArray = std::array<Component*, maxComponents>;
-
-// class Component
-// {
-// public:
-//     Entity* entity;
-
-//     virtual void init() {}
-//     virtual void update() {}
-//     virtual void draw() {}
-
-//     virtual ~Component() {}
-// };
-
-// class Entity
-// {
-// private:
-//     bool active = true;
-//     std::vector<std::unique_ptr<Component>> components;
-
-//     ComponentArray componentArray;
-//     ComponentBitSet componentBitSet;
-
-// public:
-//     void update()
-//     {
-//         for ( auto& c : components ) c->update();
-//         for ( auto& c: components ) c->draw();
-//     }
-
-//     void draw() {}
-//     bool isActive() const { return active; }
-//     void destroy() { active = false; }
-
-//     template <typename T> bool hasComponentID() const
-//     {
-//         return componentBitSet[getComponentID<T>];
-//     }
-
-//     template <typename T, typename... TArgs>
-//     T& addComponent(TArgs&&... mArgs)
-//     {
-//         T* c(new T(std::forward<TArgs>(mArgs)...));
-//         c->entity = this;
-//         std::unique_ptr<Component> uPtr{ c };
-//         components.emplace_back(std::move(uPtr));
-
-//         componentArray[getComponentTypeID<T>()] = c;
-//         componentBitSet[getComponentTypeID<T>()] = true;
-
-//         c->init();
-//         return *c;
-//     }
-
-//     template<typename T> T& getComponent() const
-//     {
-//         auto ptr(componentArray[getComponentTypeID<T>()]);
-//         return *static_cast<T*>(ptr);
-//     }
-
-//     // gameobject.getComponent<PositionComponent>().setXpos(25);
-// };
-
-// class Manager
-// {
-// private:
-//     std::vector<std::unique_ptr<Entity>> entities;
-
-// public:
-//     void update()
-//     {
-//         for (auto& e : entities) e->update();
-//     }
-
-//     void draw()
-//     {
-//         for (auto& e : entities) e->draw();
-//     }
-
-//     void refresh()
-//     {
-//         entities.erase(std::remove_if(std::begin(entities), std::end(entities),
-//             [](const std::unique_ptr<Entity> &mEntity)
-//         {
-//             return !mEntity->isActive();
-//         }),
-//             std::end(entities));
-//     }
-
-//     Entity& addEntity()
-//     {
-//         Entity* e = new Entity();
-//         std::unique_ptr<Entity> uPtr{ e };
-//         entities.emplace_back(std::move(uPtr));
-//         return *e;
-//     }
-// };
-
-// }

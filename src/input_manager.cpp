@@ -44,6 +44,11 @@ int InputManager::GetKey()
     }
 }
 
+bool InputManager::KeyIsDown(int keycode)
+{
+    return (GetKey() == keycode);
+}
+
 void InputManager::SetPressedFalse()
 {
     pressed = false;

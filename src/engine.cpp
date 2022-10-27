@@ -36,6 +36,9 @@ void Engine::Startup() {
 
     Engine::game->PublicInit();
 
+    scripts.SetFun(input);
+    scripts.SetFun(sounds);
+
     RunGameLoop("Start");
 }
 

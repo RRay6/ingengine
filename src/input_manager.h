@@ -13,6 +13,7 @@ class InputManager {
         int KeyPressed(GLFWwindow* window);
         int GetKey();
         void SetPressedFalse();
+        bool KeyIsDown(int keycode);
         static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
     private:

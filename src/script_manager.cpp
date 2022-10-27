@@ -41,4 +41,14 @@ bool ScriptManager::LoadScript( const string& name, const string& path ) {
     return true;
 }
 
+void ScriptManager::SetFun(input_manager::InputManager input)
+{
+    lua.set_function( "KeyIsDown", [&]( const int keycode ) { return input.KeyIsDown( keycode ); } );
+}
+
+void ScriptManager::SetFun(sound_manager::SoundManager input)
+{
+    lua.set_function( "PlaySound", [&]( const string sound ) { string path_string = resources.ResolvePath("sounds", sound).u8string(); return input.LoadSound( sound,  path_string); } );
+}
+
 }
