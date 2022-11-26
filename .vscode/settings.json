@@ -69,6 +69,8 @@
     "filesystem": "cpp",
     "array": "cpp",
     "bitset": "cpp",
-    "typeindex": "cpp"
+    "typeindex": "cpp",
+    "deque": "cpp",
+    "stack": "cpp"
   }
 }
