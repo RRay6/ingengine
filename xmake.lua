@@ -1,8 +1,9 @@
 includes("external/xmake_soloud.lua")
 
+
 add_rules("mode.debug", "mode.release")
 add_requires("glfw")
-add_requires("spdlog")
+
 add_requires("soloud")
 add_requires("sokol")
 add_requires("glm")
@@ -14,7 +15,7 @@ target("ingengine")
     set_languages("cxx17")
 
     add_packages("glfw", {public = true})
-    add_packages("spdlog", {public = true})
+
     add_packages("soloud", {public = true})
     add_packages("sokol", {public = true})
     add_packages("glm", {public = true})
@@ -26,8 +27,8 @@ target("ingengine")
     -- This allows targets that depend on the engine to #include them.
     add_includedirs("src", {public = true})
     add_includedirs("tests", {public = true})
-    
-    -- Add all .cpp files in the `src` directory.
+
+    -- Add all .cpp files in the src directory.
     add_files("src/*.cpp")
     add_files("tests/*.cpp")
 

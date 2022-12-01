@@ -82,7 +82,7 @@ void rock_em_and_sock_em::RockEmAndSockEm::Init()
 
     ecs::EntityID a = entity_manager.Create();
 
-    auto& sprite = a.Get<Sprite>();
+    auto& sprite = entity_manager.Get<Sprite>(a);
     sprite.image = "black.png";
     sprite.scale = 100;
     sprite.x = 0;
@@ -149,7 +149,7 @@ void rock_em_and_sock_em::RockEmAndSockEm::Init()
 
             ecs::EntityID b = entity_manager.Create();
 
-            auto& sprite2 = b.Get<Sprite>();
+            auto& sprite2 = entity_manager.Get<Sprite>(b);
             sprite2.image = "purple"+to_string(num)+".png";
             //sprite2.image = sprite2.image+".png";
 
@@ -174,7 +174,7 @@ void rock_em_and_sock_em::RockEmAndSockEm::Init()
     for (auto entity : entities)
     {
         cout << "inside loop \n";
-        auto& s = entity.Get<Sprite>();
+        auto& s = entity_manager.Get<Sprite>(entity);
         cout << "image: " << s.image << '\n';
     }
 

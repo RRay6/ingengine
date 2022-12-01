@@ -8,9 +8,20 @@
 
 namespace ingengine {
 
+    void Engine::TestTest() {
+        string theTxt = "Please work.";
+        Types::Text testing{ theTxt, 50, 50 };
+        testEntity = gameEngine.entity_manager.Create();
+        gameEngine.entity_manager.Get<Types::Text>(testEntity) = testing;
+    }
+
 Engine::Engine(game::Game* g) :
     Engine::game(g)
 {
+}
+
+Engine::Engine() {
+
 }
 
 void Engine::Startup() {
@@ -39,6 +50,7 @@ void Engine::Startup() {
     scripts.SetFun(input);
     scripts.SetFun(sounds);
 
+    TestTest();
     RunGameLoop("Start");
 }
 
@@ -68,7 +80,7 @@ void Engine::RunGameLoop(const std::string& name, std::function<void()> callback
             //Do something
             // std::cerr << "Test." << std::endl;
             input.Update(graphics.GetWindow());
-
+            graphics.UpdateText(testEntity);
             // Sprite sprite;
             // sprite.image = "lulu_the_cat.jpg";
             // sprite.scale = 100;
@@ -99,6 +111,8 @@ void Engine::RunGameLoop(const std::string& name, std::function<void()> callback
             Engine::game->PublicInput(input.GetKey());
             Engine::game->PublicUpdate();
             graphics.Draw(Engine::game->vec);
+
+            //graphics.RenderText();
 
             if (input.GetKey() != -1)
             {
