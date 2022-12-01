@@ -7,14 +7,33 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <random>
+
+class Node {  // This class represents each node in the behaviour tree.
+	public:
+		std::string name;
+		int probabilityOfSuccess;
+		virtual bool run() = 0;
+};
+
+class Action : public Node {
+	public:
+		std::string name;
+		int probabilityOfSuccess;
+		Action (const std::string newName, int prob) : name(newName), probabilityOfSuccess(prob) {}
+	private:
+		virtual bool run() override {
+			if (std::rand() % 100 < probabilityOfSuccess) {
+				std::cout << name << " succeeded." << std::endl;
+				return true;
+			}
+			std::cout << name << " failed." << std::endl;
+			return false;
+		}
+};
 
 class BehaviourTree {  // Note:  A proper copy constructor and assignment operator should be defined, since the implicit ones use shallow copies only.
 	public:
-		class Node {  // This class represents each node in the behaviour tree.
-			public:
-				virtual bool run() = 0;
-		};
-		
 		class CompositeNode : public Node {  //  This type of Node follows the Composite Pattern, containing a list of other Nodes.
 			private:
 				std::vector<Node*> children;
@@ -25,7 +44,14 @@ class BehaviourTree {  // Note:  A proper copy constructor and assignment operat
 				template <typename CONTAINER>
 				void addChildren (const CONTAINER& newChildren) {for (Node* child : newChildren) addChild(child);}
 			protected:
-				std::vector<Node*> childrenShuffled() const {std::vector<Node*> temp = children;  std::random_shuffle(temp.begin(), temp.end());  return temp;}
+				std::vector<Node*> childrenShuffled() const 
+				{
+					std::vector<Node*> temp = children;
+					std::random_device rd;
+					std::mt19937 g(rd());  
+					std::shuffle(temp.begin(), temp.end(), g);  
+					return temp;
+				}
 		};
 		
 		class Selector : public CompositeNode {
@@ -33,7 +59,12 @@ class BehaviourTree {  // Note:  A proper copy constructor and assignment operat
 				virtual bool run() override {
 					for (Node* child : getChildren()) {  // The generic Selector implementation
 						if (child->run())  // If one child succeeds, the entire operation run() succeeds.  Failure only results if all children fail.
+						{	
+							// Node* dummy = child;
+							// Action *pChild =  (Action *) &dummy;
+							// std::cout << "TEST" << pChild->name << "TEST\n";
 							return true;
+						}
 					}
 					return false;  // All children failed so the entire run() operation fails.
 				}
@@ -76,23 +107,6 @@ class BehaviourTree {  // Note:  A proper copy constructor and assignment operat
 		bool run() const {return root->run();}
 };
 
-class Action : public BehaviourTree::Node {
-	private:
-		std::string name;
-		int probabilityOfSuccess;
-	public:
-		Action (const std::string newName, int prob) : name(newName), probabilityOfSuccess(prob) {}
-	private:
-		virtual bool run() override {
-			if (std::rand() % 100 < probabilityOfSuccess) {
-				std::cout << name << " succeeded." << std::endl;
-				return true;
-			}
-			std::cout << name << " failed." << std::endl;
-			return false;
-		}
-};
-
 int main() {
 	std::srand(std::time(nullptr));
 	BehaviourTree behaviorTree;
@@ -108,7 +122,7 @@ int main() {
 	selector[1].addChildren ({&openDoor1, &sequence[1], &smashDoor});
 	sequence[1].addChildren ({&unlockDoor, &openDoor2});
 	sequence[2].addChildren ({&walkToWindow, &selector[2], &climbThroughWindow, &closeWindow});
-	const std::list<BehaviourTree::Node*> nodes = {&openWindow1, &sequence[3], &smashWindow};
+	const std::list<Node*> nodes = {&openWindow1, &sequence[3], &smashWindow};
 	selector[2].addChildren(nodes);
 	sequence[3].addChildren ({&unlockWindow, &openWindow2});
 	

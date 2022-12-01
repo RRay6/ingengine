@@ -1,10 +1,10 @@
 #include <iostream>
 #include "engine.h"
-#include "rock_em_and_sock_em.h"
+#include "scurvy.h"
 
 int main( int argc, const char* argv[] ) {
     
-    rock_em_and_sock_em::RockEmAndSockEm game;
+    scurvy::Scurvy game;
     ingengine::Engine eng(&game);
 
     //eng.Init(&game);
