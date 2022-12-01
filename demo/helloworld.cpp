@@ -1,13 +1,17 @@
 #include <iostream>
 #include "engine.h"
-#include "scurvy.h"
+#include "rock_em_and_sock_em.h"
+
+using namespace ingengine;
 
 int main( int argc, const char* argv[] ) {
     
-    scurvy::Scurvy game;
+    rock_em_and_sock_em::RockEmAndSockEm game;
     ingengine::Engine eng(&game);
 
-    //eng.Init(&game);
+   // eng.Init(&game);
+
+
     eng.Startup();
     std::cout << "Hello, ingENGINE! ...And the world I guess\n";
     return 0;
